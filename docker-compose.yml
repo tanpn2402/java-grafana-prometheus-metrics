@@ -1,0 +1,40 @@
+version: '3.6'
+services:
+
+  prometheus:
+    image: "prom/prometheus"
+    volumes:
+      - ./conf/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "39090:9090"
+    networks:
+      - grafana_nw
+
+
+  grafana:
+    image: grafana/grafana:8.0.2
+    env_file: configuration.env
+    depends_on:
+      - prometheus
+    links:
+      - prometheus
+    ports:
+      - '33003:3000'
+    networks:
+      - grafana_nw
+    # user: "472"
+    volumes:
+      - grafana_data:/var/lib/grafana:rw
+    logging:
+      options:
+        max-size: 50m
+        max-file: "3"
+networks:
+  grafana_nw:
+volumes:
+  grafana_data:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /data/prometheus/grafana
