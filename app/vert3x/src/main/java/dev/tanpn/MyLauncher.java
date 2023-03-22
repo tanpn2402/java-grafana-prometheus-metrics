@@ -1,6 +1,7 @@
 package dev.tanpn;
 
 import java.io.File;
+import java.util.EnumSet;
 import java.util.Scanner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,6 +15,7 @@ import io.vertx.core.Launcher;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.json.JsonObject;
+import io.vertx.micrometer.Label;
 import io.vertx.micrometer.MicrometerMetricsOptions;
 import io.vertx.micrometer.VertxPrometheusOptions;
 import io.vertx.micrometer.backends.BackendRegistries;
@@ -36,13 +38,12 @@ public class MyLauncher extends Launcher {
 		}
 		MicrometerMetricsOptions metricsOptions = new MicrometerMetricsOptions()
 			      .setEnabled(true)
-			      .setPrometheusOptions(new VertxPrometheusOptions().setEnabled(true));
+			      .setPrometheusOptions(new VertxPrometheusOptions().setEnabled(true))
+				  .setLabels(EnumSet.of(Label.REMOTE, Label.LOCAL, Label.HTTP_CODE, Label.HTTP_PATH, Label.HTTP_METHOD));
 		options.setMetricsOptions(metricsOptions);
 		super.beforeStartingVertx(options);
 	}
-	
-	
-	
+
 	@Override
 	public void afterStartingVertx(Vertx vertx) {
 		super.afterStartingVertx(vertx);
