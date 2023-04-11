@@ -1,11 +1,16 @@
 package dev.tanpn;
 
 import java.io.File;
+import java.lang.management.ManagementFactory;
 import java.util.EnumSet;
 import java.util.Scanner;
 
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import dev.tanpn.mbeans.ApiServer;
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.config.MeterFilter;
 import io.micrometer.core.instrument.distribution.DistributionStatisticConfig;
@@ -37,9 +42,9 @@ public class MyLauncher extends Launcher {
 			options = new VertxOptions();
 		}
 		MicrometerMetricsOptions metricsOptions = new MicrometerMetricsOptions()
-			      .setEnabled(true)
-			      .setPrometheusOptions(new VertxPrometheusOptions().setEnabled(true))
-				  .setLabels(EnumSet.of(Label.REMOTE, Label.LOCAL, Label.HTTP_CODE, Label.HTTP_PATH, Label.HTTP_METHOD));
+						.setEnabled(true)
+						.setPrometheusOptions(new VertxPrometheusOptions().setEnabled(true))
+						.setLabels(EnumSet.of(Label.HTTP_CODE, Label.HTTP_PATH, Label.HTTP_METHOD));
 		options.setMetricsOptions(metricsOptions);
 		super.beforeStartingVertx(options);
 	}
@@ -47,6 +52,16 @@ public class MyLauncher extends Launcher {
 	@Override
 	public void afterStartingVertx(Vertx vertx) {
 		super.afterStartingVertx(vertx);
+
+		try {
+			// Register MBean
+			ObjectName objectName = new ObjectName("com.txtech.jmx.server:type=HttpApiServer");
+			MBeanServer server = ManagementFactory.getPlatformMBeanServer();
+			server.registerMBean(new ApiServer(), objectName);
+		} catch (Exception e) {
+				// handle exceptions
+				e.printStackTrace();
+		}
 	
 		/*
 	     After the Vert.x instance has been created,
